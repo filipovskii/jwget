@@ -1,0 +1,8 @@
+# VIM swap files
+*.swp
+
+# build results
+target/
+
+# Idea files
+.idea/
