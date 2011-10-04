@@ -16,26 +16,7 @@ import static org.easymock.EasyMock.*;
 
 public class HttpConnectionTest {
   
-  @Test
-  public void testOpenedConnectionCanSendRequests() throws Exception {
-    IConnection con = new HttpConnection("http://www.java.com");
-    IDownloadRequest req = new HttpDownloadRequest();
-    IDownloadResponse resp = createMock(IDownloadResponse.class);
-    OutputStream os = createMock(OutputStream.class);
 
-    expect(resp.getOutputStream()).andReturn(os);
-    os.write(anyObject(byte[].class));
-    expectLastCall().atLeastOnce();
-    os.close();
-    replay(resp, os);
-
-    con.open();
-    con.send(req, resp);
-    con.close();
-
-    verify(resp, os);
-  }
-  
   @Test
   public void testBadURLException() {
     try {

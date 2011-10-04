@@ -4,13 +4,12 @@ import com.filipovskii.jwget.common.IConnection;
 import com.filipovskii.jwget.common.IDownloadController;
 import com.filipovskii.jwget.common.IDownloadRequest;
 import com.filipovskii.jwget.common.IDownloadResponse;
+import com.filipovskii.jwget.exception.ConnectionFailed;
 import com.google.inject.Provider;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.*;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author filipovskii_off
@@ -20,33 +19,58 @@ public class DownloadControllerTest {
   final String url = "http://www.java.com";
   final String path = "~/Downloads/java.html";
 
-  private Provider<IConnection> connectionProvider;
-  private Provider<IDownloadRequest> requestProvider;
-  private Provider<IDownloadResponse> responseProvider;
+  private Provider<IDownloadRequest> requestFactory;
+  private Provider<IDownloadResponse> responseFactory;
+  private IConnection connection;
   private IDownloadController controller;
 
   @Before
   public void setUp() {
-    connectionProvider = createNiceMock(Provider.class);
-    requestProvider = createNiceMock(Provider.class);
-    responseProvider = createNiceMock(Provider.class);
+    requestFactory = createNiceMock(Provider.class);
+    responseFactory = createNiceMock(Provider.class);
+    connection = createMock(IConnection.class);
 
     controller =
         new DownloadController(
-            connectionProvider,
-            requestProvider,
-            responseProvider);
+            connection,
+            requestFactory,
+            responseFactory);
   }
 
   @Test
   public void testControllerGetsProvidersData() throws Exception {
-    expect(connectionProvider.get()).andReturn(createMock(IConnection.class));
-    expect(requestProvider.get()).andReturn(createMock(IDownloadRequest.class));
-    expect(responseProvider.get()).andReturn(createMock(IDownloadResponse.class));
-    replay(connectionProvider, requestProvider, responseProvider);
+    expect(requestFactory.get()).andReturn(createMock(IDownloadRequest.class));
+    expect(responseFactory.get()).andReturn(createMock(IDownloadResponse.class));
+    replay(requestFactory, responseFactory);
 
     controller.call();
 
-    verify(connectionProvider, requestProvider, responseProvider);
+    verify(requestFactory, responseFactory);
   }
+
+  @Test
+  public void testConnectionOpensAndCloses() throws Exception {
+    connection.open();
+    connection.send(
+        anyObject(IDownloadRequest.class), anyObject(IDownloadResponse.class));
+    connection.close();
+    replay(connection);
+
+    controller.call();
+
+    verify(connection);
+  }
+
+  @Test
+  public void testConnectionClosesIfExceptionIsThrown() throws Exception {
+    connection.open();
+    expectLastCall().andThrow(new ConnectionFailed("bla bla"));
+    connection.close();
+    replay(connection);
+
+    controller.call();
+
+    verify(connection);
+  }
+
 }

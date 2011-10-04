@@ -5,6 +5,7 @@ import com.filipovskii.jwget.common.IDownloadRequest;
 import com.filipovskii.jwget.common.IDownloadResponse;
 import com.filipovskii.jwget.exception.ConnectionFailed;
 
+import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -20,6 +21,7 @@ public final class HttpConnection implements IConnection {
   private final String url;
   private HttpURLConnection con;
 
+  @Inject
   public HttpConnection(String connectionString) {
     this.url = connectionString;
   }
