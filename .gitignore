@@ -1,8 +1,9 @@
-# VIM swap files
+.gitignore
 *.swp
-
-# build results
+.idea
+*.iml
 target/
-
-# Idea files
-.idea/
+.DS_Store
+*.ipr
+*.iws
+*.iml

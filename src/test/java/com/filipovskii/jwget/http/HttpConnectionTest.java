@@ -1,26 +1,39 @@
 package com.filipovskii.jwget.http;
 
+import com.filipovskii.jwget.common.IConnection;
+import com.filipovskii.jwget.common.IDownloadRequest;
+import com.filipovskii.jwget.common.IDownloadResponse;
 import com.filipovskii.jwget.exception.ConnectionFailed;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 
+import org.easymock.EasyMock;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 public class HttpConnectionTest {
   
   @Test
-  public void testConnectionSucceed() throws Exception {
-    HttpConnection con = new HttpConnection("http://www.java.com");
-    con.open();
-    InputStream in = con.getInputStream();
-    byte[] data = new byte[1024];
-    in.read(data);
+  public void testOpenedConnectionCanSendRequests() throws Exception {
+    IConnection con = new HttpConnection("http://www.java.com");
+    IDownloadRequest req = new HttpDownloadRequest();
+    IDownloadResponse resp = createMock(IDownloadResponse.class);
+    OutputStream os = createMock(OutputStream.class);
 
-    assertNotNull("InputStream is null", in);
-    assertTrue("No data in stream", data.length > 0);
-    in.close();
+    expect(resp.getOutputStream()).andReturn(os);
+    os.write(anyObject(byte[].class));
+    expectLastCall().atLeastOnce();
+    os.close();
+    replay(resp, os);
+
+    con.open();
+    con.send(req, resp);
+    con.close();
+
+    verify(resp, os);
   }
   
   @Test

@@ -2,6 +2,7 @@ package com.filipovskii.jwget.http;
 
 import com.filipovskii.jwget.common.IDownloadResponse;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,22 +10,21 @@ public class HttpDownloadResponse implements IDownloadResponse {
 
   private static final String CONTENT_DISPOSITION = "Content-Disposition";
   
-  private InputStream in;
+  private final OutputStream out;
   private String originalFileName;
-  private Map<String, String> headers = new HashMap<String, String>();
+  private final Map<String, String> headers = new HashMap<String, String>();
 
-  public HttpDownloadResponse(InputStream in) {
-    this.in = in;
-  }
-
-
-  public void addHeader(String key, String value) {
-    headers.put(key, value);
+  public HttpDownloadResponse(OutputStream stream) {
+    this.out = stream;
   }
 
   public String getOriginalFileName() {
     return headers.get(CONTENT_DISPOSITION).split("filename=")[1];
   }
- 
 
+
+  @Override
+  public OutputStream getOutputStream() {
+    return out;
+  }
 }

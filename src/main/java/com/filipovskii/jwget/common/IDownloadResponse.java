@@ -1,5 +1,9 @@
 package com.filipovskii.jwget.common;
 
-public interface IDownloadResponse { 
-  
+import java.io.OutputStream;
+
+public interface IDownloadResponse {
+
+  OutputStream getOutputStream();
+
 }

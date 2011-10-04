@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 public interface IConnection {
   void open() throws ConnectionFailed;
+  void send(IDownloadRequest request, IDownloadResponse response)
+      throws ConnectionFailed;
   void close();
-  InputStream getInputStream() throws ConnectionFailed;
 }
