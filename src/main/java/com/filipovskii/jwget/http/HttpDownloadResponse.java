@@ -10,21 +10,20 @@ public class HttpDownloadResponse implements IDownloadResponse {
 
   private static final String CONTENT_DISPOSITION = "Content-Disposition";
   
-  private final OutputStream out;
-  private String originalFileName;
+  private InputStream in;
   private final Map<String, String> headers = new HashMap<String, String>();
-
-  public HttpDownloadResponse(OutputStream stream) {
-    this.out = stream;
-  }
 
   public String getOriginalFileName() {
     return headers.get(CONTENT_DISPOSITION).split("filename=")[1];
   }
 
+  @Override
+  public void setInputStream(InputStream in) {
+    this.in = in;
+  }
 
   @Override
-  public OutputStream getOutputStream() {
-    return out;
+  public InputStream getInputStream() {
+    return in;
   }
 }

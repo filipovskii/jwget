@@ -1,13 +1,13 @@
 package com.filipovskii.jwget.http;
 
-import com.filipovskii.jwget.common.*;
-
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
+import com.filipovskii.jwget.common.IConnection;
+import com.filipovskii.jwget.common.IDownloadRequest;
+import com.filipovskii.jwget.common.IDownloadResponse;
 import org.junit.Test;
 
+import java.io.InputStream;
+
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
 
 public class HttpDownloadRequestTest {
 
@@ -16,18 +16,13 @@ public class HttpDownloadRequestTest {
     IConnection con = new HttpConnection("http://www.java.com");
     IDownloadRequest req = new HttpDownloadRequest();
     IDownloadResponse resp = createMock(IDownloadResponse.class);
-    OutputStream os = createMock(OutputStream.class);
-
-    expect(resp.getOutputStream()).andReturn(os);
-    os.write(anyObject(byte[].class));
-    expectLastCall().atLeastOnce();
-    os.close();
-    replay(resp, os);
+    resp.setInputStream(anyObject(InputStream.class));
+    replay(resp);
 
     con.open();
     con.send(req, resp);
     con.close();
 
-    verify(resp, os);
+    verify(resp);
   }
 }

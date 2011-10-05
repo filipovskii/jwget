@@ -41,22 +41,10 @@ public final class HttpConnection implements IConnection {
   @Override
   public void send(IDownloadRequest request, IDownloadResponse response)
       throws ConnectionFailed {
-    OutputStream out = response.getOutputStream();
-    InputStream in = null;
     try {
-      in = new BufferedInputStream(con.getInputStream());
-      byte[] data = new byte[BUFFER_SIZE];
-      while (in.read(data) > 0) {
-        out.write(data);
-      }
+      response.setInputStream(con.getInputStream());
     } catch (Exception e) {
       throw new ConnectionFailed(e);
-    } finally {
-      try {
-        in.close();
-        out.close();
-      } catch (IOException e) {
-      }
     }
   }
 
