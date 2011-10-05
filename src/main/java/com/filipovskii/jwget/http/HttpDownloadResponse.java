@@ -1,12 +1,12 @@
 package com.filipovskii.jwget.http;
 
 import com.filipovskii.jwget.common.IDownloadResponse;
+
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpDownloadResponse implements IDownloadResponse {
+public final class HttpDownloadResponse implements IDownloadResponse {
 
   private static final String CONTENT_DISPOSITION = "Content-Disposition";
   

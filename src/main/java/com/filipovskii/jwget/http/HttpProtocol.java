@@ -9,32 +9,31 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 public final class HttpProtocol implements IProtocol {
 
-  private final Map<String, String> properties;
+  private final HttpDownloadData downloadData;
 
-  public HttpProtocol(Map<String, String> properties) {
-    this.properties = properties;
+  public HttpProtocol(HttpDownloadData downloadData) {
+    this.downloadData = downloadData;
   }
 
   @Override
   public IConnection createConnection() {
-    return new HttpConnection(properties.get("url"));
+    return new HttpConnection(downloadData.getUrl());
   }
 
   @Override
   public IDownloadRequest createRequest() {
     OutputStream os = null;
     try {
-      File file = new File(properties.get("path"));
+      File file = new File(downloadData.getDownloadPath());
       file.createNewFile();
       os = new FileOutputStream(file);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return new HttpDownloadRequest(os, properties);
+    return new HttpDownloadRequest(os, downloadData.getProperties());
   }
 
   @Override

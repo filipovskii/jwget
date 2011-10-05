@@ -1,6 +1,6 @@
 package com.filipovskii.jwget.exception;
 
-public class ConnectionFailed extends Exception {
+public final class ConnectionFailed extends Exception {
   
   public ConnectionFailed (String message, Exception ex) {
     super(message, ex);

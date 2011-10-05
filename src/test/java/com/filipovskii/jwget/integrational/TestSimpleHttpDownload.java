@@ -1,35 +1,23 @@
 package com.filipovskii.jwget.integrational;
 
 import com.filipovskii.jwget.common.IDownloadResult;
-import com.filipovskii.jwget.http.DownloadController;
+import com.filipovskii.jwget.http.HttpDownloadData;
 import com.filipovskii.jwget.http.HttpProtocol;
+import com.filipovskii.jwget.mgmt.DownloadController;
+import com.filipovskii.jwget.downloadresult.DownloadFailed;
+import com.filipovskii.jwget.testdata.DownloadProperties;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
 public class TestSimpleHttpDownload {
 
-  private static final String url = "http://www.java.com";
-  private static final String path = "/home/filipovskii_off/Downloads/java.htm";
-
-  private static final Map<String, String> properties;
-
-  static {
-    Map<String, String> props = new HashMap<String, String>();
-    props.put("url", url);
-    props.put("path", path);
-    properties = Collections.unmodifiableMap(props);
-  }
-
   @Before
   public void setUp() throws Exception {
-    File f = new File(path);
+    File f = new File(DownloadProperties.PATH);
     if (f.exists()) {
       f.delete();
     }
@@ -38,11 +26,11 @@ public class TestSimpleHttpDownload {
   @Test
   public void testSimpleHttpDownload() throws Exception {
     DownloadController controller = new DownloadController(
-        new HttpProtocol(properties));
+        new HttpProtocol(
+            HttpDownloadData.parseFrom(DownloadProperties.PROPERTIES)));
     IDownloadResult res = controller.call();
     if (!res.succeed()) {
-      res.getException().printStackTrace();
-      fail(res.getException().getMessage());
+      fail(((DownloadFailed) res).getException().getMessage());
     }
   }
 }
