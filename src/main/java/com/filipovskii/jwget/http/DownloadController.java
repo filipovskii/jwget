@@ -8,8 +8,9 @@ import java.io.OutputStream;
 
 public class DownloadController implements IDownloadController {
 
-  private final IProtocol protocol;
+  private static final int BUFFER_SIZE = 1024;
 
+  private final IProtocol protocol;
 
   public DownloadController(IProtocol protocol) {
     this.protocol = protocol;
@@ -23,21 +24,17 @@ public class DownloadController implements IDownloadController {
 
     try {
       connection.open();
-      connection.send(
-              protocol.createRequest(),
-              protocol.createResponse());
+      connection.send(req, resp);
 
     } catch (ConnectionFailed e) {
       return DownloadResult.fail(e);
-    } finally {
-      connection.close();
     }
 
     InputStream in = resp.getInputStream();
     OutputStream out = req.getOutputStream();
 
     try {
-      byte[] data = new byte[1024];
+      byte[] data = new byte[BUFFER_SIZE];
       while (in.read(data) > 0) {
         out.write(data);
       }
@@ -47,6 +44,7 @@ public class DownloadController implements IDownloadController {
       try {
         in.close();
         out.close();
+        connection.close();
       } catch (Exception e) {
 
       }

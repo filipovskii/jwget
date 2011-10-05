@@ -6,15 +6,17 @@ import com.filipovskii.jwget.common.IDownloadResponse;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import static org.easymock.EasyMock.*;
 
 public class HttpDownloadRequestTest {
 
   @Test
-  public void testSendRequestWritesToOutput() throws Exception {
+  public void testConnectionSendSersOutputSream() throws Exception {
     IConnection con = new HttpConnection("http://www.java.com");
-    IDownloadRequest req = new HttpDownloadRequest();
+    IDownloadRequest req = new HttpDownloadRequest(
+        createMock(OutputStream.class));
     IDownloadResponse resp = createMock(IDownloadResponse.class);
     resp.setInputStream(anyObject(InputStream.class));
     replay(resp);

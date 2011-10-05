@@ -7,8 +7,6 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.easymock.EasyMock.*;
 
@@ -17,10 +15,6 @@ import static org.easymock.EasyMock.*;
  */
 public class DownloadControllerTest {
 
-  final String url = "http://www.java.com";
-  final String path = "~/Downloads/java.html";
-
-  private final Map<String, String> properties = new HashMap<String, String>();
   private IProtocol protocol;
   private IConnection connection;
   private IDownloadController controller;
@@ -32,9 +26,6 @@ public class DownloadControllerTest {
 
   @Before
   public void setUp() {
-    properties.put("url", url);
-    properties.put("path", path);
-
     protocol = createNiceMock(IProtocol.class);
     connection = createMock(IConnection.class);
 

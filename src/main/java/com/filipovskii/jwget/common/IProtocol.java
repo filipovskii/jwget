@@ -1,7 +1,5 @@
 package com.filipovskii.jwget.common;
 
-import java.util.Map;
-
 /**
  * Abstract factory
  */
@@ -11,7 +9,7 @@ public interface IProtocol {
    * Set download properties
    * @param properties download properties
    */
-  void setProperties(Map<String, String> properties);
+//  void setProperties(Map<String, String> properties);
 
   /**
    * Create protocol specific connection
