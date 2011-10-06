@@ -1,13 +1,19 @@
 package com.filipovskii.jwget.http;
 
 import com.filipovskii.jwget.common.IDownloadData;
+import com.google.common.base.Objects;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Implement equals and hashCode
+ * Contains basic http download data:
+ * <ul>
+ *   <li><b>url</b>
+ *   <li><b>path</b> to downloaded file
+ *   <li>request <b>properties</b>
+ * </ul>
  */
 public final class HttpDownloadData implements IDownloadData {
 
@@ -50,8 +56,33 @@ public final class HttpDownloadData implements IDownloadData {
     return properties;
   }
 
+  /**
+   * Counts hash code from {@link #url} and {@link #path} <br />
+   * {@link #properties} doesn't count
+   *
+   * @return hash code
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(url, path);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof HttpDownloadData) {
+      HttpDownloadData that = (HttpDownloadData) obj;
+      return Objects.equal(this.url, that.url) &&
+          Objects.equal(this.path, that.path);
+    } else {
+      return false;
+    }
+  }
+
   @Override
   public String toString() {
-    return "Http download from " + getUrl() + " to " + getDownloadPath();
+    return Objects.toStringHelper(this)
+        .add("url", url)
+        .add("download path", path)
+        .toString();
   }
 }
