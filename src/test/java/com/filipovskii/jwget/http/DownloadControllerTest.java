@@ -1,8 +1,7 @@
 package com.filipovskii.jwget.http;
 
 import com.filipovskii.jwget.common.*;
-import com.filipovskii.jwget.downloadresult.DownloadResults;
-import com.filipovskii.jwget.exception.ConnectionFailed;
+import com.filipovskii.jwget.common.ConnectionFailed;
 import com.filipovskii.jwget.mgmt.DownloadController;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author filipovskii_off
@@ -104,13 +104,15 @@ public class DownloadControllerTest {
   }
 
   @Test
-  public void testInterruption() throws Exception {
+  public void testCancelation() throws Exception {
     expect(in.read((byte[]) anyObject())).andReturn(1).times(Integer.MAX_VALUE);
     replay(protocol, req, resp, in);
     ExecutorService exec = Executors.newFixedThreadPool(1);
     Future<IDownloadResult> future = exec.submit(controller);
+
+    assertFalse(future.isDone());
     future.cancel(true);
-    assertEquals(DownloadResults.CANCELED, future.get());
+    assertTrue(future.isDone());
   }
 
 }

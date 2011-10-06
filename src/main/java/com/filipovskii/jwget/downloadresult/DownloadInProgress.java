@@ -2,14 +2,14 @@ package com.filipovskii.jwget.downloadresult;
 
 import com.filipovskii.jwget.common.IDownloadResult;
 
-public final class DownloadSucceed implements IDownloadResult {
+public final class DownloadInProgress implements IDownloadResult {
 
-  DownloadSucceed() {
+  DownloadInProgress() {
 
   }
 
   @Override
   public boolean succeed() {
-    return true;
+    return false;
   }
 }

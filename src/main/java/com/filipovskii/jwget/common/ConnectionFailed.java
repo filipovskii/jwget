@@ -1,4 +1,4 @@
-package com.filipovskii.jwget.exception;
+package com.filipovskii.jwget.common;
 
 public final class ConnectionFailed extends Exception {
   

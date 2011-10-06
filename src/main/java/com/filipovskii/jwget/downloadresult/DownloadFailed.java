@@ -6,7 +6,7 @@ public final class DownloadFailed implements IDownloadResult {
 
   private final Exception exception;
   
-  public DownloadFailed(Exception exception) {
+  DownloadFailed(Exception exception) {
     this.exception = exception;
   }
 

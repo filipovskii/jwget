@@ -1,15 +1,13 @@
 package com.filipovskii.jwget.http;
 
+import com.filipovskii.jwget.common.ConnectionFailed;
 import com.filipovskii.jwget.common.IConnection;
 import com.filipovskii.jwget.common.IDownloadRequest;
 import com.filipovskii.jwget.common.IDownloadResponse;
-import com.filipovskii.jwget.exception.ConnectionFailed;
 
 import javax.inject.Inject;
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
