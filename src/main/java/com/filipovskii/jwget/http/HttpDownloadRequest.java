@@ -23,4 +23,8 @@ public final class HttpDownloadRequest implements IDownloadRequest {
   public OutputStream getOutputStream() {
     return this.os;
   }
+
+  public Map<String, String> getParameters() {
+    return params;
+  }
 }

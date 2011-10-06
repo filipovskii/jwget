@@ -7,16 +7,17 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 
 import static org.easymock.EasyMock.*;
 
 public class HttpDownloadRequestTest {
 
   @Test
-  public void testConnectionSendSersOutputSream() throws Exception {
+  public void testConnectionSendSetsOutputSream() throws Exception {
     IConnection con = new HttpConnection("http://www.java.com");
     IDownloadRequest req = new HttpDownloadRequest(
-        createMock(OutputStream.class));
+        createMock(OutputStream.class), Collections.<String, String>emptyMap());
     IDownloadResponse resp = createMock(IDownloadResponse.class);
     resp.setInputStream(anyObject(InputStream.class));
     replay(resp);

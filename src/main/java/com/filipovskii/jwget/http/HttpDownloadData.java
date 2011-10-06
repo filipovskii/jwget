@@ -3,6 +3,7 @@ package com.filipovskii.jwget.http;
 import com.filipovskii.jwget.common.IDownloadData;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,10 +15,14 @@ public final class HttpDownloadData implements IDownloadData {
   public static final String PATH_KEY = "path";
 
   public static HttpDownloadData parseFrom(Map<String, String> properties) {
+    Map<String, String> propCopy = new HashMap(properties);
+    String url = propCopy.get(URL_KEY);
+    String path = propCopy.get(PATH_KEY);
+    propCopy.remove(URL_KEY);
+    propCopy.remove(PATH_KEY);
+
     return new HttpDownloadData(
-        properties.get(URL_KEY),
-        properties.get(PATH_KEY),
-        Collections.unmodifiableMap(properties));
+        url, path, Collections.unmodifiableMap(propCopy));
   }
 
   private final String url;

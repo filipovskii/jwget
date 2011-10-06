@@ -6,11 +6,12 @@ import com.filipovskii.jwget.common.IDownloadRequest;
 import com.filipovskii.jwget.common.IDownloadResponse;
 
 import javax.inject.Inject;
-import java.io.InputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 
 public final class HttpConnection implements IConnection {
 
@@ -39,6 +40,11 @@ public final class HttpConnection implements IConnection {
   @Override
   public void send(IDownloadRequest request, IDownloadResponse response)
       throws ConnectionFailed {
+    for (Map.Entry<String, String> entry :
+        ((HttpDownloadRequest) request).getParameters().entrySet()) {
+      con.setRequestProperty(entry.getKey(), entry.getValue());
+    }
+
     try {
       response.setInputStream(con.getInputStream());
     } catch (Exception e) {
