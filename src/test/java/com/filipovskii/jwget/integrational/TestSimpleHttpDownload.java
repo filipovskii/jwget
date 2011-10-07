@@ -2,6 +2,7 @@ package com.filipovskii.jwget.integrational;
 
 import com.filipovskii.jwget.common.ConnectionFailed;
 import com.filipovskii.jwget.common.IDownloadData;
+import com.filipovskii.jwget.common.IDownloadManager;
 import com.filipovskii.jwget.common.IDownloadResult;
 import com.filipovskii.jwget.downloadresult.DownloadFailed;
 import com.filipovskii.jwget.downloadresult.DownloadInProgress;
@@ -67,7 +68,7 @@ public class TestSimpleHttpDownload {
 
   @Test
   public void testDownloadInProgress() throws Exception {
-    DownloadManager manager = DownloadManager.getInstance();
+    IDownloadManager manager = DownloadManager.getInstance();
     manager.addDownload(DownloadProperties.PROPERTIES);
     Map<IDownloadData, IDownloadResult> list = manager.listDownloads();
 

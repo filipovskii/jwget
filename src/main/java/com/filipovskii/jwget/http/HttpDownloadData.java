@@ -21,7 +21,7 @@ public final class HttpDownloadData implements IDownloadData {
   public static final String PATH_KEY = "path";
 
   public static HttpDownloadData parseFrom(Map<String, String> properties) {
-    Map<String, String> propCopy = new HashMap(properties);
+    Map<String, String> propCopy = new HashMap<String, String>(properties);
     String url = propCopy.get(URL_KEY);
     String path = propCopy.get(PATH_KEY);
     propCopy.remove(URL_KEY);
