@@ -28,10 +28,10 @@ public final class AddCommand implements IConsoleCommand {
     Map<String, String> properties = new HashMap<String, String>();
     for (String arg : args) {
       if (eqSignMatcher.matchesAnyOf(arg)) {
-        Iterator<String> iter = Splitter
+        Iterator<String> iterator = Splitter
             .on(eqSignMatcher)
             .split(arg).iterator();
-        properties.put(iter.next(), iter.next());
+        properties.put(iterator.next(), iterator.next());
       } else {
         if (!properties.containsKey(HttpDownloadData.URL_KEY)) {
           properties.put(HttpDownloadData.URL_KEY, arg);

@@ -1,16 +1,17 @@
 package com.filipovskii.jwget.ui;
 
+import com.filipovskii.jwget.common.IDownloadData;
 import com.filipovskii.jwget.common.IDownloadManager;
+import com.filipovskii.jwget.common.IDownloadResult;
 import com.filipovskii.jwget.http.HttpDownloadData;
 import com.filipovskii.jwget.testdata.DownloadProperties;
 import org.easymock.Capture;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Writer;
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
@@ -19,16 +20,19 @@ import static org.junit.Assert.assertEquals;
  */
 public class ShellTest {
 
-  private ExecutorService executor = Executors.newSingleThreadExecutor();
-  private CountDownLatch latch = new CountDownLatch(1);
+  private IConsole console;
+  private IDownloadManager manager;
+
+  @Before
+  public void setUp() {
+    console = createMock(IConsole.class);
+    manager = createMock(IDownloadManager.class);
+  }
 
   @Test
   public void testAddCommandParse() throws Exception {
     String command =
         "add " + DownloadProperties.URL + " " + DownloadProperties.PATH;
-
-    IConsole console = createMock(IConsole.class);
-    IDownloadManager manager = createMock(IDownloadManager.class);
     Capture<Map<String, String>> passedProps =
         new Capture<Map<String, String>>();
 
@@ -54,6 +58,29 @@ public class ShellTest {
     assertEquals(
         DownloadProperties.PATH,
         passedProps.getValue().get(HttpDownloadData.PATH_KEY));
+
+    verify(console, manager);
+  }
+
+
+  @Test
+  public void testListCommand() throws Exception {
+    String command = "list";
+    expect(console.readLine(anyObject(String.class))).andReturn(command);
+    expectLastCall();
+    expectLastCall().andThrow(new IllegalStateException("out!"));
+    expect(manager.listDownloads()).andReturn(
+        Collections.<IDownloadData, IDownloadResult>emptyMap());
+
+    expect(console.writer()).andReturn(createMock(Writer.class));
+    replay(console, manager);
+
+    Shell sh = new Shell(console, manager);
+    try {
+      sh.commandLoop();
+    } catch(IllegalStateException e) {
+
+    }
 
     verify(console, manager);
   }

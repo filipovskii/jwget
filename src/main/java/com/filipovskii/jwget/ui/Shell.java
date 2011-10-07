@@ -6,6 +6,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.inject.internal.util.ImmutableMap;
 import com.google.inject.internal.util.ImmutableSet;
+import com.google.inject.internal.util.Preconditions;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,6 +38,7 @@ public final class Shell {
     commandMap = ImmutableMap
         .<String, IConsoleCommand>builder()
         .put("add", commands.ADD_DOWNLOAD)
+        .put("list", commands.LIST_DOWNLOADS)
         .build();
   }
 
@@ -47,20 +49,25 @@ public final class Shell {
       }
 
       String strCommand = console.readLine("jwget: ");
-      LOG.info("Got command [" + strCommand + "]");
+      LOG.info("Command: [" + strCommand + "]");
 
       Iterator<String> args =
           Splitter
               .on(CharMatcher.WHITESPACE)
               .split(strCommand)
               .iterator();
-      IConsoleCommand command = commandMap.get(args.next());
+
+      String commandName = args.next();
+      IConsoleCommand command = commandMap.get(commandName);
+      Preconditions.checkNotNull(command, "Command %s not found!", commandName);
+
       // adding all except key word
       ImmutableSet.Builder<String> setBuilder = ImmutableSet.builder();
       while (args.hasNext()) {
         setBuilder.add(args.next());
       }
       String result = command.invoke(setBuilder.build());
+      LOG.info("Command result: " + result + '\n');
       console.writer().write(result);
     }
   }
