@@ -4,4 +4,6 @@ import java.util.concurrent.Callable;
 
 public interface IDownloadController extends Callable<IDownloadResult> {
 
+  IDownloadResult getStatus();
+
 }

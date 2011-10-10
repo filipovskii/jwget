@@ -12,12 +12,17 @@ public final class DownloadController implements IDownloadController {
 
   private final IProtocol protocol;
 
+  private IDownloadResult status;
+
   public DownloadController(IProtocol protocol) {
     this.protocol = protocol;
+    this.status = DownloadResults.NOT_STARTED;
   }
 
   @Override
   public IDownloadResult call() throws Exception {
+    this.status = DownloadResults.IN_PROGRESS;
+
     IConnection connection = protocol.createConnection();
     IDownloadRequest req = protocol.createRequest();
     IDownloadResponse resp = protocol.createResponse();
@@ -53,6 +58,12 @@ public final class DownloadController implements IDownloadController {
         connection.close();
       } catch (Exception ignore) {}
     }
+    this.status = DownloadResults.SUCCESS;
     return DownloadResults.SUCCESS;
+  }
+
+  @Override
+  public IDownloadResult getStatus() {
+    return this.status;
   }
 }
