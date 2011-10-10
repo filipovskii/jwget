@@ -39,6 +39,7 @@ public final class Shell {
         .<String, IConsoleCommand>builder()
         .put("add", commands.ADD_DOWNLOAD)
         .put("list", commands.LIST_DOWNLOADS)
+        .put("cancel", commands.CANCEL_DOWNLOAD)
         .build();
   }
 
@@ -59,7 +60,8 @@ public final class Shell {
 
       String commandName = args.next();
       IConsoleCommand command = commandMap.get(commandName);
-      Preconditions.checkNotNull(command, "Command %s not found!", commandName);
+      Preconditions.checkNotNull(
+          command, "Command [%s] not found!", commandName);
 
       // adding all except key word
       ImmutableSet.Builder<String> setBuilder = ImmutableSet.builder();

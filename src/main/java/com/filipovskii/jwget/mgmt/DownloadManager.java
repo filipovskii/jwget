@@ -4,6 +4,7 @@ import com.filipovskii.jwget.common.*;
 import com.filipovskii.jwget.downloadresult.DownloadResults;
 import com.filipovskii.jwget.http.HttpDownloadData;
 import com.filipovskii.jwget.http.HttpProtocol;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -42,6 +43,11 @@ public final class DownloadManager implements IDownloadManager {
     }
   }
 
+  @Override
+  public void cancelDownload(IDownloadData downloadData) {
+    downloads.get(downloadData).cancel(true);
+  }
+
 
   @Override
   public IDownloadResult getStatus(IDownloadData downloadData) {
@@ -58,6 +64,11 @@ public final class DownloadManager implements IDownloadManager {
       resultList.put(entry.getKey(), getStatus(entry.getValue()));
     }
     return resultList;
+  }
+
+  @Override
+  public ImmutableList<IDownloadData> listDownloadData() {
+    return ImmutableList.copyOf(downloads.keySet());
   }
 
   @Override
