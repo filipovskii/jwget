@@ -10,6 +10,33 @@
   
   <build>
     <plugins>
+      <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-jar-plugin</artifactId>-->
+        <!--<configuration>-->
+          <!--<archive>-->
+            <!--<manifest>-->
+              <!--<addClasspath>true</addClasspath>-->
+              <!--<mainClass>com.filipovskii.jwget.Main</mainClass>-->
+            <!--</manifest>-->
+          <!--</archive>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+            <archive>
+                <manifest>
+                  <mainClass>com.filipovskii.jwget.Main</mainClass>
+                </manifest>
+            </archive>
+            <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -31,6 +58,26 @@
   </build>
 
   <dependencies>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>org.slf4j</groupId>-->
+      <!--<artifactId>jcl-over-slf4j</artifactId>-->
+      <!--<version>1.6.2</version>-->
+    <!--</dependency>-->
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

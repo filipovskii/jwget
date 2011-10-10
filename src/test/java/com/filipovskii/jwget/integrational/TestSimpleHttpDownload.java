@@ -2,6 +2,7 @@ package com.filipovskii.jwget.integrational;
 
 import com.filipovskii.jwget.common.ConnectionFailed;
 import com.filipovskii.jwget.common.IDownloadData;
+import com.filipovskii.jwget.common.IDownloadManager;
 import com.filipovskii.jwget.common.IDownloadResult;
 import com.filipovskii.jwget.downloadresult.DownloadFailed;
 import com.filipovskii.jwget.downloadresult.DownloadInProgress;
@@ -30,6 +31,7 @@ public class TestSimpleHttpDownload {
     if (f.exists()) {
       f.delete();
     }
+    DownloadManager.getInstance().reset();
   }
 
   @Test
@@ -49,7 +51,7 @@ public class TestSimpleHttpDownload {
     properties.put(HttpDownloadData.URL_KEY, "http://badurl.bad");
     properties.put(HttpDownloadData.PATH_KEY, DownloadProperties.PATH);
 
-    DownloadManager manager = new DownloadManager();
+    DownloadManager manager = DownloadManager.getInstance();
     manager.addDownload(properties);
     Map<IDownloadData, IDownloadResult> list = manager.listDownloads();
     IDownloadResult res = list.get(list.keySet().toArray()[0]);
@@ -66,7 +68,7 @@ public class TestSimpleHttpDownload {
 
   @Test
   public void testDownloadInProgress() throws Exception {
-    DownloadManager manager = new DownloadManager();
+    IDownloadManager manager = DownloadManager.getInstance();
     manager.addDownload(DownloadProperties.PROPERTIES);
     Map<IDownloadData, IDownloadResult> list = manager.listDownloads();
 
