@@ -8,7 +8,10 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -53,7 +56,7 @@ public class DownloadControllerTest {
 
     replay(protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(protocol);
   }
@@ -66,7 +69,7 @@ public class DownloadControllerTest {
     connection.close();
     replay(connection, protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(connection);
   }
@@ -78,7 +81,7 @@ public class DownloadControllerTest {
     connection.close();
     replay(connection, protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(connection);
   }
@@ -95,21 +98,37 @@ public class DownloadControllerTest {
     replay(protocol, req, resp, in, out);
 
     // act
-    controller.call();
+    controller.run();
 
     verify(in, out);
   }
 
   @Test
   public void testCancellation() throws Exception {
-    expect(in.read((byte[]) anyObject())).andReturn(1).times(Integer.MAX_VALUE);
-    replay(protocol, req, resp, in);
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    expect(in.read((byte[]) anyObject())).andReturn(1);
+    out.write((byte[]) anyObject());
+    expectLastCall().andAnswer(new IAnswer<Void>() {
+      @Override
+      public Void answer() throws Throwable {
+        barrier.await();
+        return null;
+      }
+    });
+    expect(in.read((byte[]) anyObject())).andReturn(1).anyTimes();
+    out.write((byte[]) anyObject());
+    expectLastCall().anyTimes();
+
+    replay(protocol, req, resp, in, out);
     ExecutorService exec = Executors.newFixedThreadPool(1);
-    Future<IDownloadResult> future = exec.submit(controller);
+    Future<?> future = exec.submit(controller);
 
     assertFalse(future.isDone());
-    future.cancel(true);
+    barrier.await();
+    controller.cancel();
+    future.get();
     assertTrue(future.isDone());
+    assertEquals(DownloadResults.CANCELED, controller.getStatus());
   }
 
 
