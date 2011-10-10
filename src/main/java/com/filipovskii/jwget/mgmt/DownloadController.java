@@ -12,7 +12,7 @@ public final class DownloadController implements IDownloadController {
 
   private final IProtocol protocol;
 
-  private IDownloadResult status;
+  private volatile IDownloadResult status;
 
   public DownloadController(IProtocol protocol) {
     this.protocol = protocol;
@@ -20,7 +20,7 @@ public final class DownloadController implements IDownloadController {
   }
 
   @Override
-  public IDownloadResult call() throws Exception {
+  public void run() {
     this.status = DownloadResults.IN_PROGRESS;
 
     IConnection connection = protocol.createConnection();
@@ -46,9 +46,9 @@ public final class DownloadController implements IDownloadController {
       }
 
     } catch (InterruptedException ex) {
-      return DownloadResults.CANCELED;
+      this.status = DownloadResults.CANCELED;
     } catch (Exception e) {
-      return DownloadResults.fail(e);
+      this.status = DownloadResults.fail(e);
     } finally {
       try {
         in.close();
@@ -59,7 +59,6 @@ public final class DownloadController implements IDownloadController {
       } catch (Exception ignore) {}
     }
     this.status = DownloadResults.SUCCESS;
-    return DownloadResults.SUCCESS;
   }
 
   @Override

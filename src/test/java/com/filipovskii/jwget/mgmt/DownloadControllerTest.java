@@ -8,10 +8,7 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -119,34 +116,28 @@ public class DownloadControllerTest {
   @Test
   public void testStatusNotStarted() throws Exception {
     reset(protocol);
-    final CountDownLatch latch = new CountDownLatch(1);
+    ExecutorService ex = Executors.newSingleThreadExecutor();
+
+    final CyclicBarrier barrier = new CyclicBarrier(2, new Runnable() {
+      @Override
+      public void run() {
+        assertEquals(DownloadResults.IN_PROGRESS, controller.getStatus());
+      }
+    });
 
     expect(protocol.createConnection()).andAnswer(new IAnswer<IConnection>() {
       @Override
       public IConnection answer() throws Throwable {
-        latch.countDown();
-        Thread.sleep(100);
+        barrier.await();
         throw new InterruptedException("stop test");
       }
     });
 
     replay(protocol);
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          controller.call();
-        } catch (Exception e) {
-          fail();
-        }
-      }
-    });
 
     assertEquals(DownloadResults.NOT_STARTED, controller.getStatus());
-
-    thread.start();
-    latch.await();
-    assertEquals(DownloadResults.IN_PROGRESS, controller.getStatus());
+    ex.submit(controller);
+    barrier.await();
   }
 
 }

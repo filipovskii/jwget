@@ -22,8 +22,8 @@ public final class DownloadManager implements IDownloadManager {
 
   private ExecutorService executor
       = Executors.newFixedThreadPool(THREADS_NUM);
-  private final Map<IDownloadData, Future<IDownloadResult>> downloads
-      = new HashMap<IDownloadData, Future<IDownloadResult>>();
+  private final Map<IDownloadData, Future<?>> downloads
+      = new HashMap<IDownloadData, Future<?>>();
 
   private DownloadManager() {
 
@@ -38,7 +38,7 @@ public final class DownloadManager implements IDownloadManager {
       HttpDownloadData downloadData = HttpDownloadData.parseFrom(properties);
       IProtocol protocol = new HttpProtocol(downloadData);
       IDownloadController controller = new DownloadController(protocol);
-      Future<IDownloadResult> future = executor.submit(controller);
+      Future<?> future = executor.submit(controller);
       downloads.put(downloadData, future);
     }
   }
