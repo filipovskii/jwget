@@ -1,20 +1,20 @@
-package com.filipovskii.jwget.http;
+package com.filipovskii.jwget.mgmt;
 
 import com.filipovskii.jwget.common.*;
-import com.filipovskii.jwget.common.ConnectionFailed;
-import com.filipovskii.jwget.mgmt.DownloadController;
+import com.filipovskii.jwget.downloadresult.DownloadResults;
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author filipovskii_off
@@ -35,8 +35,8 @@ public class DownloadControllerTest {
     protocol = createNiceMock(IProtocol.class);
     connection = createMock(IConnection.class);
 
-    in = createMock(InputStream.class);
-    out = createMock(OutputStream.class);
+    in = createNiceMock(InputStream.class);
+    out = createNiceMock(OutputStream.class);
 
     req = createMock(IDownloadRequest.class);
     resp = createMock(IDownloadResponse.class);
@@ -56,7 +56,7 @@ public class DownloadControllerTest {
 
     replay(protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(protocol);
   }
@@ -69,7 +69,7 @@ public class DownloadControllerTest {
     connection.close();
     replay(connection, protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(connection);
   }
@@ -81,7 +81,7 @@ public class DownloadControllerTest {
     connection.close();
     replay(connection, protocol, req, resp);
 
-    controller.call();
+    controller.run();
 
     verify(connection);
   }
@@ -98,21 +98,65 @@ public class DownloadControllerTest {
     replay(protocol, req, resp, in, out);
 
     // act
-    controller.call();
+    controller.run();
 
     verify(in, out);
   }
 
   @Test
-  public void testCancelation() throws Exception {
-    expect(in.read((byte[]) anyObject())).andReturn(1).times(Integer.MAX_VALUE);
-    replay(protocol, req, resp, in);
+  public void testCancellation() throws Exception {
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    expect(in.read((byte[]) anyObject())).andReturn(1);
+    out.write((byte[]) anyObject());
+    expectLastCall().andAnswer(new IAnswer<Void>() {
+      @Override
+      public Void answer() throws Throwable {
+        barrier.await();
+        return null;
+      }
+    });
+    expect(in.read((byte[]) anyObject())).andReturn(1).anyTimes();
+    out.write((byte[]) anyObject());
+    expectLastCall().anyTimes();
+
+    replay(protocol, req, resp, in, out);
     ExecutorService exec = Executors.newFixedThreadPool(1);
-    Future<IDownloadResult> future = exec.submit(controller);
+    Future<?> future = exec.submit(controller);
 
     assertFalse(future.isDone());
-    future.cancel(true);
+    barrier.await();
+    controller.cancel();
+    future.get();
     assertTrue(future.isDone());
+    assertEquals(DownloadResults.CANCELED, controller.getStatus());
+  }
+
+
+  @Test
+  public void testStatusNotStarted() throws Exception {
+    reset(protocol);
+    ExecutorService ex = Executors.newSingleThreadExecutor();
+
+    final CyclicBarrier barrier = new CyclicBarrier(2, new Runnable() {
+      @Override
+      public void run() {
+        assertEquals(DownloadResults.IN_PROGRESS, controller.getStatus());
+      }
+    });
+
+    expect(protocol.createConnection()).andAnswer(new IAnswer<IConnection>() {
+      @Override
+      public IConnection answer() throws Throwable {
+        barrier.await();
+        throw new InterruptedException("stop test");
+      }
+    });
+
+    replay(protocol);
+
+    assertEquals(DownloadResults.NOT_STARTED, controller.getStatus());
+    ex.submit(controller);
+    barrier.await();
   }
 
 }

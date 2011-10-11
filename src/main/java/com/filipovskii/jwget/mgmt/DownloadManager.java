@@ -1,7 +1,6 @@
 package com.filipovskii.jwget.mgmt;
 
 import com.filipovskii.jwget.common.*;
-import com.filipovskii.jwget.downloadresult.DownloadResults;
 import com.filipovskii.jwget.http.HttpDownloadData;
 import com.filipovskii.jwget.http.HttpProtocol;
 import com.google.common.collect.ImmutableList;
@@ -9,7 +8,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public final class DownloadManager implements IDownloadManager {
 
@@ -22,8 +24,8 @@ public final class DownloadManager implements IDownloadManager {
 
   private ExecutorService executor
       = Executors.newFixedThreadPool(THREADS_NUM);
-  private final Map<IDownloadData, Future<IDownloadResult>> downloads
-      = new HashMap<IDownloadData, Future<IDownloadResult>>();
+  private final Map<IDownloadData, IDownloadController> controllerList
+      = new HashMap<IDownloadData, IDownloadController>();
 
   private DownloadManager() {
 
@@ -38,44 +40,43 @@ public final class DownloadManager implements IDownloadManager {
       HttpDownloadData downloadData = HttpDownloadData.parseFrom(properties);
       IProtocol protocol = new HttpProtocol(downloadData);
       IDownloadController controller = new DownloadController(protocol);
-      Future<IDownloadResult> future = executor.submit(controller);
-      downloads.put(downloadData, future);
+      Future<?> future = executor.submit(controller);
+      controllerList.put(downloadData, controller);
     }
   }
 
   @Override
   public void cancelDownload(IDownloadData downloadData) {
-    downloads.get(downloadData).cancel(true);
+    controllerList.get(downloadData).cancel();
   }
 
 
   @Override
   public IDownloadResult getStatus(IDownloadData downloadData) {
-    Future<IDownloadResult> future = downloads.get(downloadData);
-    return getStatus(future);
+    return controllerList.get(downloadData).getStatus();
   }
 
   @Override
   public Map<IDownloadData, IDownloadResult> listDownloads() {
     Map<IDownloadData, IDownloadResult> resultList =
         new HashMap<IDownloadData, IDownloadResult>();
-    for (Map.Entry<IDownloadData, Future<IDownloadResult>> entry :
-        downloads.entrySet()) {
-      resultList.put(entry.getKey(), getStatus(entry.getValue()));
+    for (Map.Entry<IDownloadData,IDownloadController> entry :
+        controllerList.entrySet()) {
+      resultList.put(entry.getKey(), entry.getValue().getStatus());
     }
     return resultList;
   }
 
   @Override
   public ImmutableList<IDownloadData> listDownloadData() {
-    return ImmutableList.copyOf(downloads.keySet());
+    return ImmutableList.copyOf(controllerList.keySet());
   }
 
   @Override
   public void reset() {
     shutdown();
     executor = Executors.newFixedThreadPool(THREADS_NUM);
-    downloads.clear();
+    controllerList.clear();
   }
 
   @Override
@@ -88,23 +89,9 @@ public final class DownloadManager implements IDownloadManager {
     executor.shutdownNow();
   }
 
-  // TODO: needed for tests and should be removed/replaced
-  public Future<IDownloadResult> getFuture(IDownloadData data) {
-    return downloads.get(data);
-  }
-
-  private IDownloadResult getStatus(Future<IDownloadResult> future) {
-    if (future.isDone()) {
-      try {
-        return future.get();
-      } catch (CancellationException e) {
-        return DownloadResults.CANCELED;
-      } catch (Exception ex) {
-        return DownloadResults.fail(ex);
-      }
-    } else {
-      return DownloadResults.IN_PROGRESS;
-    }
-  }
+//  // TODO: needed for tests and should be removed/replaced
+//  public Future<?> getFuture(IDownloadData data) {
+//    return futureList.get(data);
+//  }
 
 }

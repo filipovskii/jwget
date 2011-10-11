@@ -1,7 +1,7 @@
 package com.filipovskii.jwget.mgmt;
 
 import com.filipovskii.jwget.common.*;
-import com.filipovskii.jwget.downloadresult.DownloadResults;
+import com.filipovskii.jwget.downloadresult.DownloadCanceled;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,12 +12,17 @@ public final class DownloadController implements IDownloadController {
 
   private final IProtocol protocol;
 
+  private final StatusHolder statusHolder;
+
   public DownloadController(IProtocol protocol) {
     this.protocol = protocol;
+    this.statusHolder = new StatusHolder();
+    statusHolder.notStarted();
   }
 
   @Override
-  public IDownloadResult call() throws Exception {
+  public void run() {
+    statusHolder.inProgress();
     IConnection connection = protocol.createConnection();
     IDownloadRequest req = protocol.createRequest();
     IDownloadResponse resp = protocol.createResponse();
@@ -33,17 +38,20 @@ public final class DownloadController implements IDownloadController {
       out = req.getOutputStream();
 
       byte[] data = new byte[BUFFER_SIZE];
-      while (in.read(data) > 0) {
+      int read;
+      while ((read = in.read(data)) > 0) {
         out.write(data);
-        if (Thread.currentThread().isInterrupted()) {
+        statusHolder.addProgress(read);
+        if (isCancelled()) {
           throw new InterruptedException();
         }
       }
+      statusHolder.finished();
 
     } catch (InterruptedException ex) {
-      return DownloadResults.CANCELED;
+      statusHolder.cancelled();
     } catch (Exception e) {
-      return DownloadResults.fail(e);
+      statusHolder.failed(e);
     } finally {
       try {
         in.close();
@@ -53,6 +61,24 @@ public final class DownloadController implements IDownloadController {
         connection.close();
       } catch (Exception ignore) {}
     }
-    return DownloadResults.SUCCESS;
+  }
+
+  @Override
+  public IDownloadResult getStatus() {
+    return this.statusHolder.getStatus();
+  }
+
+  @Override
+  public void cancel() {
+    this.statusHolder.cancelled();
+  }
+
+  /**
+   * todo: not thread safe
+   * @return
+   */
+  private boolean isCancelled() {
+    return Thread.currentThread().isInterrupted() ||
+        (this.statusHolder.getStatus() instanceof DownloadCanceled);
   }
 }

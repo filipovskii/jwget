@@ -4,11 +4,12 @@ import com.filipovskii.jwget.common.IDownloadResult;
 
 public final class DownloadResults {
 
-  public static final IDownloadResult SUCCESS = new DownloadSucceed();
-  public static final IDownloadResult CANCELED = new DownloadCanceled();
-  public static final IDownloadResult IN_PROGRESS = new DownloadInProgress();
+  public static final DownloadSucceed SUCCESS = new DownloadSucceed();
+  public static final DownloadCanceled CANCELED = new DownloadCanceled();
+  public static final DownloadInProgress IN_PROGRESS = new DownloadInProgress();
+  public static final DownloadNotStarted NOT_STARTED = new DownloadNotStarted();
 
-  public static IDownloadResult fail(Exception ex) {
+  public static DownloadFailed fail(Exception ex) {
    return new DownloadFailed(ex);
   }
 }
