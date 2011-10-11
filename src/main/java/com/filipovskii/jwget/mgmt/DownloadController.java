@@ -2,11 +2,9 @@ package com.filipovskii.jwget.mgmt;
 
 import com.filipovskii.jwget.common.*;
 import com.filipovskii.jwget.downloadresult.DownloadCanceled;
-import com.filipovskii.jwget.downloadresult.DownloadResults;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicReference;
 
 public final class DownloadController implements IDownloadController {
 
@@ -14,22 +12,17 @@ public final class DownloadController implements IDownloadController {
 
   private final IProtocol protocol;
 
-  private final AtomicReference<IDownloadResult> status;
+  private final StatusHolder statusHolder;
 
   public DownloadController(IProtocol protocol) {
     this.protocol = protocol;
-    this.status =
-        new AtomicReference<IDownloadResult>(DownloadResults.NOT_STARTED);
+    this.statusHolder = new StatusHolder();
+    statusHolder.notStarted();
   }
 
   @Override
   public void run() {
-    if (!status.compareAndSet(
-        DownloadResults.NOT_STARTED,
-        DownloadResults.IN_PROGRESS)) {
-      return;
-    }
-
+    statusHolder.inProgress();
     IConnection connection = protocol.createConnection();
     IDownloadRequest req = protocol.createRequest();
     IDownloadResponse resp = protocol.createResponse();
@@ -45,21 +38,20 @@ public final class DownloadController implements IDownloadController {
       out = req.getOutputStream();
 
       byte[] data = new byte[BUFFER_SIZE];
-      while (in.read(data) > 0) {
+      int read;
+      while ((read = in.read(data)) > 0) {
         out.write(data);
+        statusHolder.addProgress(read);
         if (isCancelled()) {
           throw new InterruptedException();
         }
       }
+      statusHolder.finished();
 
     } catch (InterruptedException ex) {
-      this.status.compareAndSet(
-          DownloadResults.IN_PROGRESS,
-          DownloadResults.CANCELED);
+      statusHolder.cancelled();
     } catch (Exception e) {
-      this.status.compareAndSet(
-          DownloadResults.IN_PROGRESS,
-          DownloadResults.fail(e));
+      statusHolder.failed(e);
     } finally {
       try {
         in.close();
@@ -69,28 +61,24 @@ public final class DownloadController implements IDownloadController {
         connection.close();
       } catch (Exception ignore) {}
     }
-    this.status.compareAndSet(
-        DownloadResults.IN_PROGRESS,
-        DownloadResults.SUCCESS);
   }
 
   @Override
   public IDownloadResult getStatus() {
-    return this.status.get();
+    return this.statusHolder.getStatus();
   }
 
   @Override
-  public boolean cancel() {
-    return status.compareAndSet(
-        DownloadResults.IN_PROGRESS,
-        DownloadResults.CANCELED) ||
-        status.compareAndSet(
-            DownloadResults.NOT_STARTED,
-            DownloadResults.CANCELED);
+  public void cancel() {
+    this.statusHolder.cancelled();
   }
 
+  /**
+   * todo: not thread safe
+   * @return
+   */
   private boolean isCancelled() {
     return Thread.currentThread().isInterrupted() ||
-        (this.status.get() instanceof DownloadCanceled);
+        (this.statusHolder.getStatus() instanceof DownloadCanceled);
   }
 }
