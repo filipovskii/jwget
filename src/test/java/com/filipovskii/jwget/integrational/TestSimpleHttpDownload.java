@@ -1,11 +1,10 @@
 package com.filipovskii.jwget.integrational;
 
 import com.filipovskii.jwget.common.ConnectionFailed;
+import com.filipovskii.jwget.common.FileSaver;
 import com.filipovskii.jwget.common.IDownloadData;
-import com.filipovskii.jwget.common.IDownloadManager;
 import com.filipovskii.jwget.common.IDownloadResult;
 import com.filipovskii.jwget.downloadresult.DownloadFailed;
-import com.filipovskii.jwget.downloadresult.DownloadInProgress;
 import com.filipovskii.jwget.http.HttpDownloadData;
 import com.filipovskii.jwget.http.HttpProtocol;
 import com.filipovskii.jwget.mgmt.DownloadController;
@@ -18,7 +17,6 @@ import java.io.File;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -36,15 +34,23 @@ public class TestSimpleHttpDownload {
 
   @Test
   public void testSimpleHttpDownload() throws Exception {
+    HttpDownloadData data =
+        HttpDownloadData.parseFrom(DownloadProperties.PROPERTIES);
     DownloadController controller = new DownloadController(
-        new HttpProtocol(
-            HttpDownloadData.parseFrom(DownloadProperties.PROPERTIES)));
-    IDownloadResult res = controller.call();
-    if (!res.succeed()) {
-      fail(((DownloadFailed) res).getException().getMessage());
+        new HttpProtocol(data), new FileSaver(data));
+    controller.run();
+    if (!controller.getStatus().succeed()) {
+      fail(
+          ((DownloadFailed) controller.getStatus())
+              .getException()
+              .getMessage());
     }
   }
 
+  /**
+   * TODO: change thread sleep
+   * @throws Exception
+   */
   @Test
   public void testDownloadFailed() throws Exception {
     Map<String, String> properties = new HashMap<String, String>();
@@ -52,29 +58,17 @@ public class TestSimpleHttpDownload {
     properties.put(HttpDownloadData.PATH_KEY, DownloadProperties.PATH);
 
     DownloadManager manager = DownloadManager.getInstance();
+
     manager.addDownload(properties);
     Map<IDownloadData, IDownloadResult> list = manager.listDownloads();
-    IDownloadResult res = list.get(list.keySet().toArray()[0]);
+    IDownloadData key = list.keySet().iterator().next();
+    Thread.sleep(1000); //#FIXME!
+    DownloadFailed downloadFailed = (DownloadFailed) manager.getStatus(key);
 
-    Future<IDownloadResult> future = manager.getFuture(
-        (IDownloadData) list.keySet().toArray()[0]);
-
-    DownloadFailed downloadFailed = (DownloadFailed) future.get();
     assertTrue("Wrong exception",
         downloadFailed.getException() instanceof ConnectionFailed);
     assertTrue("Wrong nested exception",
         downloadFailed.getException().getCause() instanceof UnknownHostException);
   }
 
-  @Test
-  public void testDownloadInProgress() throws Exception {
-    IDownloadManager manager = DownloadManager.getInstance();
-    manager.addDownload(DownloadProperties.PROPERTIES);
-    Map<IDownloadData, IDownloadResult> list = manager.listDownloads();
-
-    IDownloadResult res = list.get(list.keySet().toArray()[0]);
-
-    assertTrue("Download should be in progress",
-        res instanceof DownloadInProgress);
-  }
 }

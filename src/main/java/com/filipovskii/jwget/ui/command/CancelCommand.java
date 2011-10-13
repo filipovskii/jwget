@@ -1,6 +1,7 @@
 package com.filipovskii.jwget.ui.command;
 
 import com.filipovskii.jwget.common.IDownloadManager;
+import com.filipovskii.jwget.ui.IConsole;
 import com.filipovskii.jwget.ui.IConsoleCommand;
 
 /**
@@ -15,9 +16,9 @@ final class CancelCommand implements IConsoleCommand {
   }
 
   @Override
-  public String invoke(Iterable<String> args) {
+  public void invoke(Iterable<String> args, IConsole console) throws Exception {
     int downloadNumber = Integer.parseInt(args.iterator().next());
     manager.cancelDownload(manager.listDownloadData().get(downloadNumber));
-    return "ok";
+    console.writer().write("ok");
   }
 }

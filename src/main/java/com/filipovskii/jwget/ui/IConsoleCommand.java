@@ -5,7 +5,7 @@ public interface IConsoleCommand {
    * Invoke a command.
    *
    * @param args command arguments
-   * @return output
+   * @param console result will be written here
    */
-  String invoke(Iterable<String> args);
+  void invoke(Iterable<String> args, IConsole console) throws Exception;
 }

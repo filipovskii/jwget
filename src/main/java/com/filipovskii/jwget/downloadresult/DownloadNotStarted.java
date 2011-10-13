@@ -2,7 +2,14 @@ package com.filipovskii.jwget.downloadresult;
 
 import com.filipovskii.jwget.common.IDownloadResult;
 
-public final class DownloadCanceled implements IDownloadResult {
+/**
+ * @author filipovskii_off
+ */
+public final class DownloadNotStarted implements IDownloadResult {
+
+  DownloadNotStarted() {
+
+  }
 
   @Override
   public boolean succeed() {

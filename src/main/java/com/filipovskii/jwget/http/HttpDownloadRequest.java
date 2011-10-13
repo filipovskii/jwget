@@ -3,25 +3,18 @@ package com.filipovskii.jwget.http;
 import com.filipovskii.jwget.common.IDownloadRequest;
 
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class HttpDownloadRequest implements IDownloadRequest {
   
-  private Map<String, String> params;
-  private final OutputStream os;
+  private final Map<String, String> params = new HashMap<String, String>();
 
-  public HttpDownloadRequest(OutputStream os) {
-    this.os = os;
+  public HttpDownloadRequest() {
   }
 
-  public HttpDownloadRequest(OutputStream os, Map<String, String> properties) {
-    this.os = os;
-    this.params = properties;
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    return this.os;
+  public HttpDownloadRequest(Map<String, String> properties) {
+    this.params.putAll(properties);
   }
 
   public Map<String, String> getParameters() {

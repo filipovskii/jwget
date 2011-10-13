@@ -5,11 +5,6 @@ import com.filipovskii.jwget.common.IDownloadRequest;
 import com.filipovskii.jwget.common.IDownloadResponse;
 import com.filipovskii.jwget.common.IProtocol;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 public final class HttpProtocol implements IProtocol {
 
   private final HttpDownloadData downloadData;
@@ -25,15 +20,7 @@ public final class HttpProtocol implements IProtocol {
 
   @Override
   public IDownloadRequest createRequest() {
-    OutputStream os = null;
-    try {
-      File file = new File(downloadData.getDownloadPath());
-      file.createNewFile();
-      os = new FileOutputStream(file);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return new HttpDownloadRequest(os, downloadData.getProperties());
+    return new HttpDownloadRequest(downloadData.getProperties());
   }
 
   @Override

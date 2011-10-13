@@ -12,4 +12,9 @@ public final class DownloadInProgress implements IDownloadResult {
   public boolean succeed() {
     return false;
   }
+
+  @Override
+  public String toString() {
+    return StatusNames.IN_PROGRESS.value();
+  }
 }

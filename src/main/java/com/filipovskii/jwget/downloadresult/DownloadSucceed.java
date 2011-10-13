@@ -12,4 +12,9 @@ public final class DownloadSucceed implements IDownloadResult {
   public boolean succeed() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return StatusNames.SUCCEED.value();
+  }
 }

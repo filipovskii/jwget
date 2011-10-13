@@ -23,11 +23,13 @@ public class ShellTest {
 
   private IConsole console;
   private IDownloadManager manager;
+  private Writer mockWriter;
 
   @Before
   public void setUp() {
-    console = createMock(IConsole.class);
+    console = createNiceMock(IConsole.class);
     manager = createMock(IDownloadManager.class);
+    mockWriter =  createNiceMock(Writer.class);
   }
 
   @Test
@@ -71,6 +73,13 @@ public class ShellTest {
     testCommand(command);
   }
 
+  @Test
+  public void testUnknownCommand() throws Exception {
+    mockWriter.write(Shell.USAGE);
+
+    testCommand("doesn't_exist");
+  }
+
   /**
    * This is a basic method stub for testing shell commands. <br />
    *
@@ -86,8 +95,8 @@ public class ShellTest {
     expect(console.readLine(anyObject(String.class))).andReturn(command);
     expectLastCall();
     expectLastCall().andThrow(new IllegalStateException("out!"));
-    expect(console.writer()).andReturn(createMock(Writer.class));
-    replay(console, manager);
+    expect(console.writer()).andReturn(mockWriter).anyTimes();
+    replay(console, manager, mockWriter);
 
     Shell sh = new Shell(console, manager);
     try {
@@ -96,6 +105,6 @@ public class ShellTest {
 
     }
 
-    verify(console, manager);
+    verify(console, manager, mockWriter);
   }
 }

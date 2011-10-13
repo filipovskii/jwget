@@ -6,9 +6,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.inject.internal.util.ImmutableMap;
 import com.google.inject.internal.util.ImmutableSet;
-import com.google.inject.internal.util.Preconditions;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -21,7 +20,12 @@ import java.util.Iterator;
  */
 public final class Shell {
 
-  private static Log LOG = LogFactory.getLog(Shell.class);
+  public static final String USAGE = "USAGE : bla bla bla \n";
+  public static final String ERROR =
+      "Unexpected error has occured." +
+      "See logs for more details.";
+
+  private static Logger LOG = LoggerFactory.getLogger(Shell.class);
   private static final Splitter.MapSplitter splitter =
       Splitter
           .on(CharMatcher.WHITESPACE)
@@ -50,7 +54,7 @@ public final class Shell {
       }
 
       String strCommand = console.readLine("jwget: ");
-      LOG.info("Command: [" + strCommand + "]");
+      LOG.info("Command: [{}]", strCommand);
 
       Iterator<String> args =
           Splitter
@@ -60,17 +64,25 @@ public final class Shell {
 
       String commandName = args.next();
       IConsoleCommand command = commandMap.get(commandName);
-      Preconditions.checkNotNull(
-          command, "Command [%s] not found!", commandName);
+
+      if (command == null) {
+        console.writer().write(USAGE);
+        LOG.info("Command [{}] not found.", commandName);
+        continue;
+      }
 
       // adding all except key word
       ImmutableSet.Builder<String> setBuilder = ImmutableSet.builder();
       while (args.hasNext()) {
         setBuilder.add(args.next());
       }
-      String result = command.invoke(setBuilder.build());
-      LOG.info("Command result: " + result + '\n');
-      console.writer().write(result);
+      try {
+        command.invoke(setBuilder.build(), console);
+      } catch (Exception ex) {
+        LOG.error("Error while invoking command", ex);
+        console.writer().write(ERROR);
+      }
+      console.writer().write('\n');
     }
   }
 }
