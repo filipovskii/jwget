@@ -2,6 +2,7 @@ package com.filipovskii.jwget.ui.command;
 
 import com.filipovskii.jwget.common.IDownloadManager;
 import com.filipovskii.jwget.http.HttpDownloadData;
+import com.filipovskii.jwget.ui.IConsole;
 import com.filipovskii.jwget.ui.IConsoleCommand;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -24,7 +25,7 @@ public final class AddCommand implements IConsoleCommand {
   }
 
   @Override
-  public String invoke(Iterable<String> args) {
+  public void invoke(Iterable<String> args, IConsole console) throws Exception {
     Map<String, String> properties = new HashMap<String, String>();
     for (String arg : args) {
       if (eqSignMatcher.matchesAnyOf(arg)) {
@@ -44,6 +45,6 @@ public final class AddCommand implements IConsoleCommand {
       }
     }
     downloadManager.addDownload(properties);
-    return DOWNLOAD_ADDED;
+    console.writer().write(DOWNLOAD_ADDED);
   }
 }

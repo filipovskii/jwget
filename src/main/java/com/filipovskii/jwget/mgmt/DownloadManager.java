@@ -38,8 +38,8 @@ public final class DownloadManager implements IDownloadManager {
             "http://")) {
 
       HttpDownloadData downloadData = HttpDownloadData.parseFrom(properties);
-      IProtocol protocol = new HttpProtocol(downloadData);
-      IDownloadController controller = new DownloadController(protocol);
+      IDownloadController controller = new DownloadController(
+          new HttpProtocol(downloadData), new FileSaver(downloadData));
       Future<?> future = executor.submit(controller);
       controllerList.put(downloadData, controller);
     }
@@ -89,9 +89,5 @@ public final class DownloadManager implements IDownloadManager {
     executor.shutdownNow();
   }
 
-//  // TODO: needed for tests and should be removed/replaced
-//  public Future<?> getFuture(IDownloadData data) {
-//    return futureList.get(data);
-//  }
 
 }

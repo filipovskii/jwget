@@ -8,4 +8,9 @@ public final class DownloadCanceled implements IDownloadResult {
   public boolean succeed() {
     return false;
   }
+
+  @Override
+  public String toString() {
+    return StatusNames.NOT_STARTED.value();
+  }
 }

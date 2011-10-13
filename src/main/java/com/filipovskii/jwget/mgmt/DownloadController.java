@@ -11,10 +11,11 @@ public final class DownloadController implements IDownloadController {
   private static final int BUFFER_SIZE = 1024;
 
   private final IProtocol protocol;
-
+  private final ISaver saver;
   private final StatusHolder statusHolder;
 
-  public DownloadController(IProtocol protocol) {
+  public DownloadController(IProtocol protocol, ISaver saver) {
+    this.saver = saver;
     this.protocol = protocol;
     this.statusHolder = new StatusHolder();
     statusHolder.notStarted();
@@ -31,11 +32,11 @@ public final class DownloadController implements IDownloadController {
     OutputStream out = null;
 
     try {
+      out = saver.getOutputStream();
       connection.open();
       connection.send(req, resp);
 
       in = resp.getInputStream();
-      out = req.getOutputStream();
 
       byte[] data = new byte[BUFFER_SIZE];
       int read;

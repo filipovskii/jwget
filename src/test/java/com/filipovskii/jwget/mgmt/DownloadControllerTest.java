@@ -1,11 +1,13 @@
 package com.filipovskii.jwget.mgmt;
 
 import com.filipovskii.jwget.common.*;
+import com.filipovskii.jwget.downloadresult.DownloadFailed;
 import com.filipovskii.jwget.downloadresult.DownloadResults;
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CyclicBarrier;
@@ -24,6 +26,7 @@ public class DownloadControllerTest {
   private IProtocol protocol;
   private IConnection connection;
   private IDownloadController controller;
+  private ISaver saver;
 
   private InputStream in;
   private OutputStream out;
@@ -31,19 +34,20 @@ public class DownloadControllerTest {
   private IDownloadResponse resp;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     protocol = createNiceMock(IProtocol.class);
     connection = createMock(IConnection.class);
+    saver = createMock(ISaver.class);
 
     in = createNiceMock(InputStream.class);
     out = createNiceMock(OutputStream.class);
 
     req = createMock(IDownloadRequest.class);
     resp = createMock(IDownloadResponse.class);
-    expect(req.getOutputStream()).andReturn(out);
+    expect(saver.getOutputStream()).andReturn(out);
     expect(resp.getInputStream()).andReturn(in);
 
-    controller = new DownloadController(protocol);
+    controller = new DownloadController(protocol, saver);
 
     expect(protocol.createConnection()).andReturn(connection);
     expect(protocol.createRequest()).andReturn(req);
@@ -67,7 +71,7 @@ public class DownloadControllerTest {
     connection.send(
         anyObject(IDownloadRequest.class), anyObject(IDownloadResponse.class));
     connection.close();
-    replay(connection, protocol, req, resp);
+    replay(connection, protocol, req, resp, saver);
 
     controller.run();
 
@@ -79,7 +83,7 @@ public class DownloadControllerTest {
     connection.open();
     expectLastCall().andThrow(new ConnectionFailed("bla bla"));
     connection.close();
-    replay(connection, protocol, req, resp);
+    replay(connection, protocol, req, resp, saver);
 
     controller.run();
 
@@ -95,7 +99,7 @@ public class DownloadControllerTest {
     expectLastCall().times(2);
     in.close();
     out.close();
-    replay(protocol, req, resp, in, out);
+    replay(protocol, req, resp, in, out, saver);
 
     // act
     controller.run();
@@ -119,7 +123,7 @@ public class DownloadControllerTest {
     out.write((byte[]) anyObject());
     expectLastCall().anyTimes();
 
-    replay(protocol, req, resp, in, out);
+    replay(protocol, req, resp, in, out, saver);
     ExecutorService exec = Executors.newFixedThreadPool(1);
     Future<?> future = exec.submit(controller);
 
@@ -157,6 +161,19 @@ public class DownloadControllerTest {
     assertEquals(DownloadResults.NOT_STARTED, controller.getStatus());
     ex.submit(controller);
     barrier.await();
+  }
+
+  @Test
+  public void testDownloadFailesOnSaverException() throws Exception {
+    IOException ex = new IOException("i.e. file not found");
+    reset(saver);
+    expect(saver.getOutputStream()).andThrow(ex);
+
+    replay(protocol, req, resp, in, out, saver);
+    controller.run();
+    assertTrue(controller.getStatus() instanceof DownloadFailed);
+    assertSame(ex,
+        ((DownloadFailed) controller.getStatus()).getException());
   }
 
 }

@@ -4,7 +4,7 @@ import com.filipovskii.jwget.common.IDownloadResult;
 
 public final class DownloadFailed implements IDownloadResult {
 
-  private final Exception exception;
+   private final Exception exception;
   
   DownloadFailed(Exception exception) {
     this.exception = exception;
@@ -17,5 +17,11 @@ public final class DownloadFailed implements IDownloadResult {
 
   public Exception getException() {
     return exception;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s [%s]",
+        StatusNames.FAILED.value(), exception.getMessage());
   }
 }

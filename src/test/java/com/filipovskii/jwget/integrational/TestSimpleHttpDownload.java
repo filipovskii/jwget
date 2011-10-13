@@ -1,6 +1,7 @@
 package com.filipovskii.jwget.integrational;
 
 import com.filipovskii.jwget.common.ConnectionFailed;
+import com.filipovskii.jwget.common.FileSaver;
 import com.filipovskii.jwget.common.IDownloadData;
 import com.filipovskii.jwget.common.IDownloadResult;
 import com.filipovskii.jwget.downloadresult.DownloadFailed;
@@ -33,9 +34,10 @@ public class TestSimpleHttpDownload {
 
   @Test
   public void testSimpleHttpDownload() throws Exception {
+    HttpDownloadData data =
+        HttpDownloadData.parseFrom(DownloadProperties.PROPERTIES);
     DownloadController controller = new DownloadController(
-        new HttpProtocol(
-            HttpDownloadData.parseFrom(DownloadProperties.PROPERTIES)));
+        new HttpProtocol(data), new FileSaver(data));
     controller.run();
     if (!controller.getStatus().succeed()) {
       fail(
